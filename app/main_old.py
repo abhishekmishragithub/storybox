@@ -1,15 +1,12 @@
 import logging
-from logging.handlers import RotatingFileHandler
 import asyncio
 from fastapi import FastAPI, Request, Form, HTTPException
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, StreamingResponse
-from fastapi.staticfiles import StaticFiles
 from app.services.story_service import generate_story, generate_title
 from app.services.scene_service import break_into_scenes
 from app.services.image_service import generate_image, generate_image_prompt
 from app.utils.emoji_utils import add_emoji_to_title
-import os
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -19,9 +16,7 @@ file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelnam
 logger.addHandler(file_handler)
 
 app = FastAPI()
-current_dir = os.path.dirname(os.path.abspath(__file__))
-templates = Jinja2Templates(directory=os.path.join(current_dir, "templates"))
-app.mount("/app/static", StaticFiles(directory=os.path.join(current_dir, "static")), name="static")
+templates = Jinja2Templates(directory="app/templates")
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
@@ -65,21 +60,20 @@ async def generate(
             logger.info(f"Generated {len(scenes.split())} scenes")
             yield f"event: scenes\ndata: {scenes}\n\n"
 
-            # Generate images for each scene asynchronously
-            async def generate_image_for_scene(scene, index):
-                try:
-                    image_prompt = await generate_image_prompt(scene)
-                    logger.info(f"Generated image prompt for scene {index+1}")
-                    image_url = await generate_image(image_prompt)
-                    logger.info(f"Generated image for scene {index+1}")
-                    return f"event: image\ndata: {{'scene': {index}, 'url': '{image_url}'}}\n\n"
-                except Exception as e:
-                    logger.error(f"Error generating image for scene {index+1}: {str(e)}")
-                    return f"event: image_error\ndata: {{'scene': {index}, 'error': '{str(e)}'}}\n\n"
-
-            image_tasks = [generate_image_for_scene(scene, i) for i, scene in enumerate(scenes.split("\n")) if scene.strip()]
-            for completed_task in asyncio.as_completed(image_tasks):
-                yield await completed_task
+            # Generate images for each scene
+            for i, scene in enumerate(scenes.split("\n")):
+                if scene.strip():
+                    logger.info(f"Generating image for scene {i+1}")
+                    yield f"event: image_start\ndata: Generating image for scene {i+1}...\n\n"
+                    try:
+                        image_prompt = await generate_image_prompt(scene)
+                        logger.info(f"Generated image prompt for scene {i+1}")
+                        image_url = await generate_image(image_prompt)
+                        logger.info(f"Generated image for scene {i+1}")
+                        yield f"event: image\ndata: {{'scene': {i}, 'url': '{image_url}'}}\n\n"
+                    except Exception as e:
+                        logger.error(f"Error generating image for scene {i+1}: {str(e)}")
+                        yield f"event: image_error\ndata: {{'scene': {i}, 'error': '{str(e)}'}}\n\n"
 
             logger.info("Story generation complete")
             yield "event: complete\ndata: Generation complete\n\n"

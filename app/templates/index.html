@@ -3,66 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multimodal Story Generator</title>
-    <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; padding: 20px; }
-        form { margin-bottom: 20px; }
-        input, select, button { margin: 10px 0; padding: 5px; }
-        button { cursor: pointer; }
-        h2 { margin-top: 20px; }
-        pre { white-space: pre-wrap; word-wrap: break-word; }
-        .error { color: red; font-weight: bold; }
-    </style>
+    <title>Storyteller</title>
+    <link rel="stylesheet" href="/app/static/static.css">
 </head>
 <body>
-    <h1>Multimodal Story Generator</h1>
-    <form action="/generate" method="post">
-        <div>
-            <label for="prompt">Story Prompt:</label>
-            <input type="text" id="prompt" name="prompt" required>
-        </div>
-        <div>
-            <label for="style">Style:</label>
-            <select id="style" name="style" required>
-                <option value="funny">Funny</option>
-                <option value="scary">Scary</option>
-                <option value="romantic">Romantic</option>
-                <option value="adventurous">Adventurous</option>
-            </select>
-        </div>
-        <div>
-            <label for="length">Length:</label>
-            <select id="length" name="length" required>
-                <option value="short">Short</option>
-                <option value="medium">Medium</option>
-                <option value="long">Long</option>
-            </select>
-        </div>
-        <button type="submit">Generate Story</button>
-    </form>
+    <div class="container">
+        <h1>Storyteller</h1>
 
-    {% if error %}
-        <div class="error">
-            <h2>Error:</h2>
-            <p>{{ error }}</p>
+        <form id="story-form">
+            <div>
+                <label for="narration">Narration Style:</label>
+                <select id="narration" name="narration">
+                    <option value="standard">Standard</option>
+                    <option value="grandma">Grandma's Tales</option>
+                </select>
+            </div>
+
+            <div id="prompt-container">
+                <label for="prompt">Story Prompt:</label>
+                <input type="text" id="prompt" name="prompt">
+            </div>
+
+            <div>
+                <label for="style">Style:</label>
+                <select id="style" name="style">
+                    <option value="funny">Funny</option>
+                    <option value="scary">Scary</option>
+                    <option value="romantic">Romantic</option>
+                    <option value="adventurous">Adventurous</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="length">Length:</label>
+                <select id="length" name="length">
+                    <option value="short">Short</option>
+                    <option value="medium">Medium</option>
+                    <option value="long">Long</option>
+                </select>
+            </div>
+
+            <button type="submit">Tell Me a Story</button>
+        </form>
+
+        <div id="story-container" class="hidden">
+            <h2 id="title"></h2>
+            <div id="story"></div>
+            <h3>Scenes from our tale:</h3>
+            <div id="scenes"></div>
         </div>
-    {% endif %}
 
-    {% if story %}
-        <h2>Generated Story:</h2>
-        <pre>{{ story }}</pre>
-    {% endif %}
+        <div id="loading" class="hidden">
+            Weaving a magical tale just for you...
+        </div>
+    </div>
 
-    {% if scenes %}
-        <h2>Scenes:</h2>
-        <pre>{{ scenes }}</pre>
-    {% endif %}
-
-    {% if image_prompts %}
-        <h2>Image Prompts:</h2>
-        {% for prompt in image_prompts %}
-            <pre>{{ prompt }}</pre>
-        {% endfor %}
-    {% endif %}
+    <script src="/app/static/static.js"></script>
 </body>
 </html>

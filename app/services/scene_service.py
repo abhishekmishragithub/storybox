@@ -1,6 +1,6 @@
 from app.utils.llm_utils import get_llm_response
 
-def break_into_scenes(story: str):
+async def break_into_scenes(story: str):
     messages = [
         {
             "role": "system",
